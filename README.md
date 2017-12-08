@@ -5,7 +5,7 @@ BRFSS is a collaborative project between all of the states in the United States 
 The BRFSS objective is to collect uniform, state-specific data on preventive health practices and risk behaviors that are linked to chronic diseases, injuries, and preventable infectious diseases that affect the adult population.
 
 
-## Open the main project with browser ("intro_data_prob_project_festo.html")
+## Open the project report with browser ("intro_data_prob_project_festo.html")
 
 
 Part 1: Data (3 points)
