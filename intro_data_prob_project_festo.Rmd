@@ -1,0 +1,192 @@
+---
+title: "Exploring the BRFSS data"
+output: 
+  html_document: 
+    fig_height: 4
+    highlight: pygments
+    theme: spacelab
+---
+
+## Setup
+
+### Load packages
+
+```{r load-packages, message = FALSE}
+library(ggplot2)
+library(dplyr)
+library(gridExtra)
+```
+
+### Load data 
+
+```{r load-data}
+load("brfss2013.RData")
+```
+
+
+
+* * *
+
+## Part 1: Data
+
+<div id="instructions">
+The sample is a good representative of the population . Interviewers used stratified random sampling to conduct both landline telephone and cellular telephone-based surveys. Whereas randomly selected adults in households used the landline means, others who resided in private-residences/college-housing participated by using a cellular telephones. A wide coverage of selected questions was set up during the data collection to adress most essential factors hence well adressing topic of interest and consequently generalizable to US population.
+</div>
+
+It is not possible to infer causality since the experiment was done over a chosens strata of people; Hence different experiment groups were not randomly selected but were prechosen.
+It is clear that this study is observational and not experimental. There were levels of conveniences adopted as research was clustered into telephone or cellular with voluntary particpation; In addition, some reseacrch was categorically approached based on certain selection criteria and not random. These factors may raise bias when attempting to estimate the population parameters. However the bias problem was fairly resolved by introducing the weighting technique and by collecting a large volume of data over a wide variety of features.
+
+It is therefore very clear that this random sample is appropriate for estimating the population parameters.
+
+
+
+* * *
+
+## Part 2: Research questions
+
+**Research quesion 1:**
+
+Investigate the effect of exercise levels `(X_pa300r2)` on health status `(genhlth)` of US population `(count)`. Clearly illustrate Its variability across exercise levels and health categories respectively.
+
+**Research quesion 2:**
+
+Illustrate the variability `(h_count)` of health report `(X_rfhlth)` across the states `(X_state)`. Compare the distributions of the health categories across the states.
+
+**Research quesion 3:**
+
+How is the population `(counts_e, counts_se)` distributed across the different employment categories `(employ1)`? Investigate whether there exists gender `(sex)` imbalance across the employment categories `(employ1)`.
+
+* * *
+
+## Part 3: Exploratory data analysis
+
+
+**Research quesion 1:**
+
+```{r}
+# The counts of different views of the people on their General Health status
+health_excercise <- brfss2013 %>%
+  group_by(X_pa300r2, genhlth) %>%
+  filter(!is.na(genhlth), !is.na(X_pa300r2))
+#Table summary for Excellent health
+health_excercise %>%
+  filter(genhlth == "Excellent") %>%
+  summarise(h_count = n())
+# Table for the poor health
+health_excercise %>%
+  filter(genhlth == "Poor") %>%
+  summarise(h_count = n())
+```
+
+The table results above show brief summary of the extreme health categories `(Excellent` and `Poor)`. As shown in the tables, many people with no exercises have Poor health. On the other hand perfect health record is observed in people with great exercise habbits.
+
+
+```{r}
+p1 <- ggplot(data = health_excercise, aes(x = X_pa300r2, fill = genhlth)) +
+  labs(title = "Heath variability w.r.t exercise levels") +
+  labs(x = "a)    Physical activity minutes") + labs(y = "# people") +
+  geom_bar(position = "stack") + theme(axis.text.x=element_text(angle = 90, hjust = 1)) +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+```{r}
+p2 <- ggplot(data = health_excercise, aes(x = genhlth, fill = X_pa300r2)) +
+  labs(title = "Exercise level effect on health status") +
+  labs(x = "b)   health status") + labs(y = "# Effect rate") +
+  geom_bar(position = "fill") + theme(axis.text.x=element_text(angle = 90, hjust = 1)) +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+grid.arrange(p1,p2, ncol=2)
+```
+
+
+It is observable from the two grpahs that exercises have positive influence on health. As illustrated in the graphs, `poor health` is more visible among those who do not participate in physical exercises and this gradually decreases as exercise level rises. Conversely, `great health` is clearly observed in those participating in the exercises with  most healthy people in the `301+minutes` exercise level. Generally, the number of people are uniformly distributed across physical exercise categories.
+
+
+
+**Research quesion 2:**
+
+```{r}
+# Counts of adults with bad and good health report across the states
+state_health <- brfss2013 %>%
+  group_by(X_state, X_rfhlth) %>%
+  filter(!is.na(X_state),!is.na(X_rfhlth)) %>%
+  summarise(count = n())
+```
+```{r}
+gbh <- state_health %>%
+  filter(X_rfhlth == "Good or Better Health") %>%
+  group_by(X_state, X_rfhlth) %>%
+  arrange(desc(count))
+head(gbh)
+```
+As shown above `Good or Better Health` type is lead by `Florida` and `Kansas` respectively.
+```{r}
+fph <- state_health %>%
+  filter(X_rfhlth == "Fair or Poor Health") %>%
+  group_by(X_state, X_rfhlth) %>%
+  arrange(desc(count))
+head(fph)
+```
+The health type `Fair or Poor Health` is also dominated by `Florida` and `Kansas` respectively.
+
+```{r}
+ggplot(data = state_health, aes(x = X_state, y = count, color = X_rfhlth)) +
+  labs(title = "Variability of health report across the states") +
+  labs(x = "States") + labs(y = "# bad and good responses") +
+  geom_point() + theme(axis.text.x=element_text(angle = 90, hjust = 1)) +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+The scatter plot illustrates that `Good or Better Health` report clearly surpasses `Fair or Poor Health` health across the different states. Exceptionally large mass is observed in `Florida` with health category `Good or Better Health`. Flroida also registered the largest case of `Fair or Poor Health` category. This probably implies that Florida is highly populated. Generally the `Fair or Poor Health` health category cases have low variability across the states and more uniformly distributed whereas `Good or Better Health` experiences high variability. It is probable that `Florida` and `Kansas` states top the list of best and worst health cases because of their high population. This investigation is not enough for absolute conclusion but provides good evidence that more people are in good health than in bad health across the states.
+
+
+
+**Research quesion 3:**
+
+```{r}
+# Employment levels
+brf1 <- brfss2013 %>%
+  filter(!is.na(employ1), !is.na(sex))
+```
+```{r}
+# Number of people per empoyment type
+brf1 %>%
+  group_by(employ1) %>%
+  summarise(counts_e = n()) %>%
+  arrange(desc(counts_e))
+```
+
+This table summarises the population distribution across different employment types. It is clear that `Employed for wages` tops the list whereas `Out of work for less than 1 year` has the lowest number of people.
+
+```{r}
+# Number of males and females per employment type
+brf1 %>%
+  group_by(sex, employ1) %>%
+  summarise(counts_se = n()) %>%
+  arrange(desc(counts_se))
+```
+
+This further classifies the variability based on sex and eployment type. It shows that females are leading in most of the investigated employment categories `(employ1)`. The last three employment types here are dorminated by males as shown above.
+
+```{r}
+# plots general employee variability
+p1 <- ggplot(data = brf1, aes(x = employ1, fill = employ1)) +
+  labs(title = "Variability of employment types") +
+  labs(x = "Employment status") + labs(y = "# people") +
+  geom_bar() + theme(plot.title = element_text(hjust = 0.5))
+p1 + theme(axis.text.x=element_text(angle = 90, hjust = 1))
+#plots variability based on sex
+p2 <-ggplot(data = brf1, aes(x = employ1, fill = sex)) +
+  labs(title = "Variability of employment types with coressponding sex") +
+  labs(x = "Employment status") + labs(y = "# people") +
+  geom_bar(position = "dodge") + theme(plot.title = element_text(hjust = 0.5))
+p2 + theme(axis.text.x=element_text(angle = 90, hjust = 1))
+```
+
+
+The Histogram illustrates high  employment levels with exceptionally high population under `Employed for wages`, followed by the `retired`. `Students` are least in the employment sector. There are more females across the employment categories probably due to the fact that females are more populated acorss the states. However, there is little variability between `male` and `female` population across the different health categories. The low variability demonstrates that gender imbalance is negligible and box sexes can find work in US.
+
+
+
