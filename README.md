@@ -1,5 +1,4 @@
-# RProject_coursera-Duke
-## The Behavioral Risk Factor Surveillance System (BRFSS) project conducted by Duke University on Coursera platform
+# The Behavioral Risk Factor Surveillance System (BRFSS) project conducted by Duke University on Coursera platform
 
 BRFSS is a collaborative project between all of the states in the United States (US) and participating US territories and the Centers for Disease Control and Prevention (CDC).
 The BRFSS objective is to collect uniform, state-specific data on preventive health practices and risk behaviors that are linked to chronic diseases, injuries, and preventable infectious diseases that affect the adult population.
